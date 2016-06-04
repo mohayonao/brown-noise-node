@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>BrownNoiseNode</title>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href=//cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css>
+  <style>
+      #code { padding: 0; margin: 0; background: white; border: none }
+      #app { margin: 10px 0 }
+      #app .btn { width: 100px }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1>brown-noise-node</h1>
+      <div>
+        <a href="https://travis-ci.org/mohayonao/brown-noise-node"><img src="http://img.shields.io/travis/mohayonao/brown-noise-node.svg?style=flat-square"/></a>
+        <a href="https://www.npmjs.org/package/brown-noise-node"><img src="http://img.shields.io/npm/v/brown-noise-node.svg?style=flat-square"/></a>
+        <a href="http://mohayonao.mit-license.org/"><img src="http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"/></a>
+      </div>
+    </div>
+    <div>BrownNoise AudioNode for Web Audio API | <a href="https://github.com/mohayonao/brown-noise-node" target="github">GitHub</a></div>
+    <div id="app">
+      <div>
+        <div class="form-group row">
+          <div class="col-sm-2">
+            <button class="btn btn-default" v-on:click="play">{{ isPlaying ? "Stop" : "Start" }}</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">example</h3>
+        </div>
+        <div class="panel-body">
+          <pre class="prettyprint" id="code"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
+  <script src="//mohayonao.github.io/web-audio-scheduler/build/web-audio-scheduler.min.js"></script>
+  <script src="build/brown-noise-node.js"></script>
+  <script>
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+  window.addEventListener("DOMContentLoaded", function() {
+    "use strict";
+
+    window.app = new Vue({
+      el: "#app",
+      data: {
+        isPlaying: false
+      },
+      methods: {
+        play: function() {
+          this.isPlaying = !this.isPlaying;
+
+          if (this.isPlaying) {
+            sched.start(compose);
+          } else {
+            sched.stop(true);
+          }
+        }
+      }
+    });
+
+    // code
+    document.getElementById("code").textContent = document.getElementById("example").textContent;
+
+    prettyPrint();
+  });
+  </script>
+  <script id="example">
+    var audioContext = new AudioContext();
+    var sched = new WebAudioScheduler({ context: audioContext });
+
+    function hihat(e) {
+      var t0 = e.playbackTime;
+      var t1 = t0 + e.args.dur;
+      var noise = new BrownNoiseNode(audioContext);
+      var gain = audioContext.createGain();
+
+      noise.start(t0);
+      noise.stop(t1);
+      noise.connect(gain);
+
+      gain.gain.setValueAtTime(e.args.amp, t0);
+      gain.gain.linearRampToValueAtTime(0.0, t1);
+      gain.connect(audioContext.destination);
+    }
+
+    function compose(e) {
+      var t0 = e.playbackTime;
+
+      [
+        { dur: 0.050, amp: 0.40 },
+        { dur: 0.040, amp: 0.08 },
+        { dur: 0.050, amp: 0.30 },
+        { dur: 0.025, amp: 0.20 },
+        { dur: 0.050, amp: 0.40 },
+        { dur: 0.040, amp: 0.08 },
+        { dur: 0.050, amp: 0.30 },
+        { dur: 0.025, amp: 0.25 },
+      ].forEach(function(args, index) {
+        if (args) {
+          sched.insert(t0 + index * 0.125, hihat, args);
+        }
+      });
+
+      sched.insert(t0 + 1, compose);
+    }
+  </script>
+</body>
+</html>

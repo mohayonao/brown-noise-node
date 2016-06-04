@@ -1,0 +1,43 @@
+{
+  "name": "brown-noise-node",
+  "description": "BrownNoiseNode for Web Audio API",
+  "version": "0.0.0",
+  "author": "Nao Yonamine <mohayonao@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/mohayonao/brown-noise-node/issues"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "eater": "^1.5.5",
+    "uglify-js": "^2.6.2",
+    "web-audio-test-api": "^0.5.2"
+  },
+  "files": [
+    "index.js",
+    "package.json",
+    "README.md"
+  ],
+  "homepage": "https://github.com/mohayonao/brown-noise-node/",
+  "keywords": [
+    "webaudioapi",
+    "brownnoise"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/mohayonao/brown-noise-node.git"
+  },
+  "scripts": {
+    "build": "npm run build-browser && npm run build-minify",
+    "build-browser": "browserify index.js --standalone BrownNoiseNode -o build/brown-noise-node.js",
+    "build-minify": "uglifyjs build/brown-noise-node.js -o build/brown-noise-node.min.js",
+    "gh-pages": "git checkout gh-pages && git merge master && git push origin gh-pages && git checkout master",
+    "postversion": "git push && git push --tags",
+    "prepublish": "npm run test && npm run build",
+    "preversion": "npm run test",
+    "test": "eater",
+    "travis": "npm run test",
+    "version": "npm run build && git add -A build"
+  }
+}
